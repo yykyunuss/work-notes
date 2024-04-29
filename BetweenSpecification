@@ -1,0 +1,97 @@
+package com.ykb.factoring.factoring.cheque.repository.specification.universal;
+
+import com.ykb.factoring.factoring.cheque.dto.generic.DateRange;
+import com.ykb.factoring.factoring.cheque.dto.generic.NumberRange;
+import com.ykb.factoring.factoring.cheque.enumaration.SpecificationComparisonType;
+import lombok.EqualsAndHashCode;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.util.ObjectUtils;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
+import static com.ykb.factoring.factoring.cheque.enumaration.SpecificationComparisonType.DATE;
+import static com.ykb.factoring.factoring.cheque.enumaration.SpecificationComparisonType.NUMBER;
+
+@EqualsAndHashCode
+public class BetweenSpecification<E> implements Specification<E> {
+
+    private final SpecificationComparisonType comparisonType;
+    private final String attribute;
+    @EqualsAndHashCode.Include
+    private transient DateRange dateRangeValue;
+    @EqualsAndHashCode.Include
+    private transient NumberRange numberRangeValue;
+
+    private BetweenSpecification(SpecificationComparisonType comparisonType, String attribute, DateRange dateRangeValue) {
+        this.comparisonType = comparisonType;
+        this.attribute = attribute;
+        this.dateRangeValue = dateRangeValue;
+    }
+
+    private BetweenSpecification(SpecificationComparisonType comparisonType, String attribute, NumberRange numberRangeValue) {
+        this.comparisonType = comparisonType;
+        this.attribute = attribute;
+        this.numberRangeValue = numberRangeValue;
+    }
+
+    @Override
+    public Predicate toPredicate(Root<E> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+        switch (comparisonType) {
+            case DATE -> {
+                return runForDate(root, criteriaBuilder);
+            }
+            case NUMBER -> {
+                return runForNumber(root, criteriaBuilder);
+            }
+            default -> {
+                return null;
+            }
+        }
+    }
+
+    private Predicate runForDate(Root<E> root, CriteriaBuilder criteriaBuilder) {
+        if (dateRangeValue.isSinceStartDate()) {
+            return criteriaBuilder.greaterThanOrEqualTo(root.get(attribute), dateRangeValue.getStartDate());
+        }
+
+        if (dateRangeValue.isUntilEndDate()) {
+            return criteriaBuilder.lessThanOrEqualTo(root.get(attribute), dateRangeValue.getEndDate());
+        }
+
+        return criteriaBuilder.between(root.get(attribute), dateRangeValue.getStartDate(), dateRangeValue.getEndDate());
+    }
+
+    private Predicate runForNumber(Root<E> root, CriteriaBuilder criteriaBuilder) {
+        if (numberRangeValue.isFromMinNumber()) {
+            return criteriaBuilder.ge(root.get(attribute), numberRangeValue.getMinNumber());
+        }
+
+        if (numberRangeValue.isUpToMaxNumber()) {
+            return criteriaBuilder.le(root.get(attribute), numberRangeValue.getMaxNumber());
+        }
+
+        Predicate ge = criteriaBuilder.ge(root.get(attribute), numberRangeValue.getMinNumber());
+        Predicate le = criteriaBuilder.le(root.get(attribute), numberRangeValue.getMaxNumber());
+
+        return criteriaBuilder.and(ge, le);
+    }
+
+    public static <E> BetweenSpecification<E> create(String attribute, DateRange value) {
+        if (ObjectUtils.isEmpty(attribute) || ObjectUtils.isEmpty(value) || value.isAllTime()) {
+            return null;
+        }
+
+        return new BetweenSpecification<>(DATE, attribute, value);
+    }
+
+    public static <E> BetweenSpecification<E> create(String attribute, NumberRange value) {
+        if (ObjectUtils.isEmpty(attribute) || ObjectUtils.isEmpty(value) || value.isInfinite()) {
+            return null;
+        }
+
+        return new BetweenSpecification<>(NUMBER, attribute, value);
+    }
+}
