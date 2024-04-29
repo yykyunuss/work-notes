@@ -1,0 +1,17 @@
+package com.ykb.factoring.factoring.cheque.repository.specification.generator;
+
+import com.ykb.factoring.factoring.cheque.model.ChequeInfo;
+import com.ykb.factoring.factoring.cheque.repository.specification.custom.ChequeByRoleCustomerSpecification;
+import com.ykb.factoring.factoring.cheque.request.RequestSearchChequeByFilter.ChequeRoleInfo;
+import org.springframework.stereotype.Component;
+
+import java.util.Set;
+
+@Component
+public class ChequeSpecificationGenerator extends BaseSpecificationGenerator<ChequeInfo, ChequeSpecificationGenerator> {
+
+    public ChequeSpecificationGenerator byRoleTypeAndCustomer(Set<ChequeRoleInfo> chequeRoles) {
+        super.addToContainer(ChequeByRoleCustomerSpecification.create(chequeRoles));
+        return this;
+    }
+}
