@@ -1,0 +1,15 @@
+package com.ykb.factoring.factoring.cheque.repository;
+
+import com.ykb.factoring.factoring.cheque.dto.ChequeMICR;
+import com.ykb.factoring.factoring.cheque.model.ChequeInfo;
+import com.ykb.factoring.factoring.cheque.repository.query.ChequeInfoQuery;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+
+import java.util.Optional;
+
+public interface ChequeInfoRepository extends JpaRepository<ChequeInfo, Long>, JpaSpecificationExecutor<ChequeInfo> {
+    @Query(value = ChequeInfoQuery.FIND_CHEQUE_BY_MICR, nativeQuery = true)
+    Optional<ChequeInfo> findChequeByMICR(ChequeMICR chequeMICR);
+}
