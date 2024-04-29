@@ -1,0 +1,75 @@
+package com.ykb.factoring.factoring.cheque.repository.specification.universal;
+
+import com.ykb.factoring.factoring.cheque.enumaration.SpecificationComparisonType;
+import lombok.EqualsAndHashCode;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.util.ObjectUtils;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import java.util.Date;
+
+import static com.ykb.factoring.factoring.cheque.enumaration.SpecificationComparisonType.DATE;
+import static com.ykb.factoring.factoring.cheque.enumaration.SpecificationComparisonType.NUMBER;
+
+@EqualsAndHashCode
+public class LessThanOrEqualToSpecification<E> implements Specification<E> {
+
+    private final SpecificationComparisonType comparisonType;
+    private final String attribute;
+    private Number numberValue;
+    private Date dateValue;
+
+    private LessThanOrEqualToSpecification(SpecificationComparisonType comparisonType, String attribute, Number numberValue) {
+        this.comparisonType = comparisonType;
+        this.attribute = attribute;
+        this.numberValue = numberValue;
+    }
+
+    private LessThanOrEqualToSpecification(SpecificationComparisonType comparisonType, String attribute, Date dateValue) {
+        this.comparisonType = comparisonType;
+        this.attribute = attribute;
+        this.dateValue = dateValue;
+    }
+
+    @Override
+    public Predicate toPredicate(Root<E> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+        switch (comparisonType) {
+            case DATE -> {
+                return runForDate(root, criteriaBuilder);
+            }
+            case NUMBER -> {
+                return runForNumber(root, criteriaBuilder);
+            }
+            default -> {
+                return null;
+            }
+        }
+    }
+
+    private Predicate runForDate(Root<E> root, CriteriaBuilder criteriaBuilder) {
+        return criteriaBuilder.lessThanOrEqualTo(root.get(attribute), dateValue);
+    }
+
+    private Predicate runForNumber(Root<E> root, CriteriaBuilder criteriaBuilder) {
+        return criteriaBuilder.le(root.get(attribute), numberValue);
+    }
+
+    public static <E> LessThanOrEqualToSpecification<E> create(String attribute, Date value) {
+        if (ObjectUtils.isEmpty(attribute) || ObjectUtils.isEmpty(value)) {
+            return null;
+        }
+
+        return new LessThanOrEqualToSpecification<>(DATE, attribute, value);
+    }
+
+    public static <E> LessThanOrEqualToSpecification<E> create(String attribute, Number value) {
+        if (ObjectUtils.isEmpty(attribute) || ObjectUtils.isEmpty(value)) {
+            return null;
+        }
+
+        return new LessThanOrEqualToSpecification<>(NUMBER, attribute, value);
+    }
+}
