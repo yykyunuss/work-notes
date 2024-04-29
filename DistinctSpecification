@@ -1,0 +1,27 @@
+package com.ykb.factoring.factoring.cheque.repository.specification.universal;
+
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
+@EqualsAndHashCode
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public class DistinctSpecification<E> implements Specification<E> {
+
+    private final boolean value;
+
+    @Override
+    public Predicate toPredicate(Root<E> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+        return query.distinct(value).getRestriction();
+    }
+
+    public static <E> DistinctSpecification<E> create(boolean value) {
+        return new DistinctSpecification<>(value);
+    }
+}
