@@ -1,0 +1,34 @@
+package com.ykb.factoring.factoring.cheque.repository.specification.universal;
+
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.util.ObjectUtils;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
+@EqualsAndHashCode
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public class EqualSpecification<E> implements Specification<E> {
+
+    private final String attribute;
+    @EqualsAndHashCode.Include
+    private final transient Object value;
+
+    @Override
+    public Predicate toPredicate(Root<E> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+        return criteriaBuilder.equal(root.get(attribute), value);
+    }
+
+    public static <E> EqualSpecification<E> create(String attribute, Object value) {
+        if (ObjectUtils.isEmpty(attribute) || ObjectUtils.isEmpty(value)) {
+            return null;
+        }
+
+        return new EqualSpecification<>(attribute, value);
+    }
+}
