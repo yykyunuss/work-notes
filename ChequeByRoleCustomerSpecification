@@ -1,0 +1,86 @@
+package com.ykb.factoring.factoring.cheque.repository.specification.custom;
+
+import com.ykb.factoring.factoring.cheque.enumaration.ChequeRoleType;
+import com.ykb.factoring.factoring.cheque.model.ChequeInfo;
+import com.ykb.factoring.factoring.cheque.model.ChequeRole;
+import com.ykb.factoring.factoring.cheque.request.RequestSearchChequeByFilter.ChequeRoleInfo;
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.util.ObjectUtils;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+@EqualsAndHashCode
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public class ChequeByRoleCustomerSpecification<E> implements Specification<E> {
+
+    @EqualsAndHashCode.Include
+    private final transient Set<ChequeRoleInfo> chequeRoles;
+
+    @Override
+    public Predicate toPredicate(Root<E> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+        Map<ChequeRoleType, Set<Long>> customersByRole = groupCustomersByRole(chequeRoles);
+
+        if (customersByRole.isEmpty()) {
+            return null;
+        }
+
+        List<Predicate> predicatesOfRole = toPredicateList(customersByRole, root, criteriaBuilder);
+
+        return criteriaBuilder.or(predicatesOfRole.toArray(new Predicate[0]));
+    }
+
+    private Map<ChequeRoleType, Set<Long>> groupCustomersByRole(Set<ChequeRoleInfo> chequeRoles) {
+        Map<ChequeRoleType, Set<Long>> customersByRole = new EnumMap<>(ChequeRoleType.class);
+
+        for (ChequeRoleInfo chequeRole : chequeRoles) {
+            if (ObjectUtils.isEmpty(chequeRole) || chequeRole.isNotFull()) {
+                continue;
+            }
+
+            Set<Long> customerIdSet = customersByRole.computeIfAbsent(chequeRole.getRoleType(), key -> new HashSet<>());
+            customerIdSet.add(chequeRole.getCustomerId());
+        }
+
+        return customersByRole;
+    }
+
+    private List<Predicate> toPredicateList(Map<ChequeRoleType, Set<Long>> customersByRole, Root<E> root, CriteriaBuilder criteriaBuilder) {
+        List<Predicate> predicatesOfRole = new ArrayList<>();
+
+        Join<ChequeRole, ChequeInfo> rolesOfCheque = root.join("chequeRoles", JoinType.INNER);
+
+        for (Map.Entry<ChequeRoleType, Set<Long>> customersByRoleEntry : customersByRole.entrySet()) {
+            ChequeRoleType role = customersByRoleEntry.getKey();
+            Set<Long> customers = customersByRoleEntry.getValue();
+
+            Predicate roleTypeCodeEqual = criteriaBuilder.equal(rolesOfCheque.get("roleTypeCode"), role);
+            Predicate customerIdIn = rolesOfCheque.get("customerId").in(customers);
+
+            predicatesOfRole.add(criteriaBuilder.and(roleTypeCodeEqual, customerIdIn));
+        }
+
+        return predicatesOfRole;
+    }
+
+    public static <E> ChequeByRoleCustomerSpecification<E> create(Set<ChequeRoleInfo> chequeRoles) {
+        if (ObjectUtils.isEmpty(chequeRoles)) {
+            return null;
+        }
+
+        return new ChequeByRoleCustomerSpecification<>(chequeRoles);
+    }
+}
