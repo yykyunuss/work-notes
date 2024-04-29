@@ -1,0 +1,48 @@
+package com.ykb.factoring.factoring.cheque.repository.specification.universal;
+
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.util.ObjectUtils;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import java.util.Collection;
+import java.util.Collections;
+
+@EqualsAndHashCode
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public class InSpecification<E> implements Specification<E> {
+
+    private final String attribute;
+    @EqualsAndHashCode.Include
+    private final transient Collection<?> values;
+
+    @Override
+    public Predicate toPredicate(Root<E> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+        return root.get(attribute).in(values);
+    }
+
+    public static <E> InSpecification<E> create(String attribute, Collection<?> values) {
+        Collection<?> existingElements = filterExistingElements(values);
+
+        if (ObjectUtils.isEmpty(attribute) || ObjectUtils.isEmpty(existingElements)) {
+            return null;
+        }
+
+        return new InSpecification<>(attribute, existingElements);
+    }
+
+    private static Collection<?> filterExistingElements(Collection<?> values) {
+        if (ObjectUtils.isEmpty(values)) {
+            return Collections.emptyList();
+        }
+
+        return values.stream()
+                .filter(each -> !ObjectUtils.isEmpty(each))
+                .toList();
+    }
+}
