@@ -1,0 +1,432 @@
+image:
+  repository: sdlc.yapikredi.com.tr/internal-docker-app/com/ykb/cosmos/dms/cosmos-dms
+  pullPolicy: ""
+  tag: ""
+
+imagePullSecrets:
+  - name: registrypullsecret
+
+devops:
+  ## This value will be overridden by Bamboo in deployment time.
+  ## But for helm lint command to be successful in cosmos builds, this value should have a value, either nl or de.
+  ## Please do not remove or change the value.
+  region: nl
+
+nl:
+  nameOverride: "nl-dms"
+  fullnameOverride: "nl-dms"
+  replicaCount: 1
+  image:
+    ports:
+      containerPort: 9080
+    readiness:
+      enabled: true
+      path: "/cosmos-dms/actuator/health"
+      port: 9080
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      failureThreshold: 3
+      successThreshold: 1
+    liveness:
+      enabled: true
+      path: "/cosmos-dms/actuator/health"
+      port: 9080
+      initialDelaySeconds: 10
+      periodSeconds: 60
+      failureThreshold: 3
+
+  imagePullSecrets:
+    - name: registrypullsecret
+
+  serviceAccount:
+    create: false
+    annotations: {}
+    name: ""
+
+  #podAnnotations:
+  #  prometheus.io/scrape: "true"
+  #  prometheus.io/port: "19000"
+  #  prometheus.io/path: "/actuator/prometheus"
+
+  podSecurityContext: {}
+
+  securityContext: {}
+
+  service:
+    type: LoadBalancer
+    port: 80
+    targetPort: 9080
+    annotations:
+      service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/proxy-body-size: 50m
+    hosts:
+      - host: be.test.netherlands.yapikredi.com.tr
+        paths:
+          - "/cosmos-dms"
+    tls: []
+
+  resources:
+    limits:
+      cpu: 3000m
+      memory: 6192Mi
+    requests:
+      cpu: 500m
+      memory: 2048Mi
+
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 2
+    # targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+  configMaps:
+    - name: application-config
+      labels: {}
+      annotations: {}
+      data:
+        path: "config/nl/tst/**"
+        mountPath: "/etc/config"
+
+  env:
+    - name: JASYPT_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: jasypt-secret
+          key: jasypt-encryptor-password
+    - name: JAVA_OPTS
+      value: "-Djasypt.encryptor.password=$(JASYPT_PASSWORD)"
+    - name: user.timezone
+      value: "Europe/Istanbul"
+    - name: SPRING_MAIN_CLOUDPLATFORM
+      value: "kubernetes"
+    - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAMESPACE
+      value: "netherlands-test"
+    - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAME
+      value: "nl-dms-application-config"
+
+az:
+  nameOverride: "az-dms"
+  fullnameOverride: "az-dms"
+  replicaCount: 1
+  image:
+    ports:
+      containerPort: 9080
+    readiness:
+      enabled: true
+      path: "/cosmos-dms/actuator/health"
+      port: 9080
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      failureThreshold: 3
+      successThreshold: 1
+    liveness:
+      enabled: true
+      path: "/cosmos-dms/actuator/health"
+      port: 9080
+      initialDelaySeconds: 10
+      periodSeconds: 60
+      failureThreshold: 3
+
+  imagePullSecrets:
+    - name: registrypullsecret
+
+  serviceAccount:
+    create: false
+    annotations: {}
+    name: ""
+
+  #podAnnotations:
+  #  prometheus.io/scrape: "true"
+  #  prometheus.io/port: "19000"
+  #  prometheus.io/path: "/actuator/prometheus"
+
+  podSecurityContext: {}
+
+  securityContext: {}
+
+  service:
+    type: LoadBalancer
+    port: 80
+    targetPort: 9080
+    annotations:
+      service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      #    nginx.ingress.kubernetes.io/rewrite-target: /$2
+      nginx.ingress.kubernetes.io/proxy-body-size: 50m
+    hosts:
+      - host: be.test.netherlands.yapikredi.com.tr
+        paths:
+          - "/cosmos-dms"
+    tls: []
+
+  resources:
+    limits:
+      cpu: 3000m
+      memory: 6192Mi
+    requests:
+      cpu: 200m
+      memory: 512Mi
+
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 2
+    # targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+  configMaps:
+    - name: application-config
+      labels: {}
+      annotations: {}
+      data:
+        path: "config/az/tst/**"
+        mountPath: "/etc/config"
+
+  env:
+    - name: JASYPT_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: jasypt-secret
+          key: jasypt-encryptor-password
+    - name: JAVA_OPTS
+      value: "-Djasypt.encryptor.password=$(JASYPT_PASSWORD)"
+    - name: user.timezone
+      value: "Europe/Istanbul"
+    - name: SPRING_MAIN_CLOUDPLATFORM
+      value: "kubernetes"
+    - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAMESPACE
+      value: "netherlands-test"
+    - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAME
+      value: "az-dms-application-config"
+
+
+de:
+  nameOverride: "de-dms"
+  fullnameOverride: "de-dms"
+  replicaCount: 1
+  image:
+    ports:
+      containerPort: 9080
+    readiness:
+      enabled: true
+      path: "/cosmos-dms/actuator/health"
+      port: 9080
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      failureThreshold: 3
+      successThreshold: 1
+    liveness:
+      enabled: true
+      path: "/cosmos-dms/actuator/health"
+      port: 9080
+      initialDelaySeconds: 10
+      periodSeconds: 60
+      failureThreshold: 3
+
+  imagePullSecrets:
+    - name: registrypullsecret
+
+  serviceAccount:
+    create: false
+    annotations: {}
+    name: ""
+
+  #podAnnotations:
+  #  prometheus.io/scrape: "true"
+  #  prometheus.io/port: "19000"
+  #  prometheus.io/path: "/actuator/prometheus"
+
+  podSecurityContext: {}
+
+  securityContext: {}
+
+  service:
+    type: LoadBalancer
+    port: 80
+    targetPort: 9080
+    annotations:
+      service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/proxy-body-size: 50m
+    hosts:
+      - host: be.tst.yapikredi.de
+        paths:
+          - "/cosmos-dms"
+    tls: []
+
+  resources:
+    limits:
+      cpu: 3000m
+      memory: 6192Mi
+    requests:
+      cpu: 200m
+      memory: 512Mi
+
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 2
+    # targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+  configMaps:
+    - name: application-config
+      labels: {}
+      annotations: {}
+      data:
+        path: "config/de/tst/**"
+        mountPath: "/etc/config"
+  env:
+    - name: JASYPT_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: jasypt-secret
+          key: jasypt-encryptor-password
+    - name: JAVA_OPTS
+      value: "-Djasypt.encryptor.password=$(JASYPT_PASSWORD)"
+    - name: user.timezone
+      value: "Europe/Istanbul"
+    - name: SPRING_MAIN_CLOUDPLATFORM
+      value: "kubernetes"
+    - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAMESPACE
+      value: "deutschland-test"
+    - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAME
+      value: "de-dms-application-config"
+
+fctr:
+  nameOverride: "fctr-dms"
+  fullnameOverride: "fctr-dms"
+  replicaCount: 1
+  image:
+    ports:
+      containerPort: 9080
+    readiness:
+      enabled: true
+      path: "/cosmos-dms/actuator/health"
+      port: 9080
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      failureThreshold: 3
+      successThreshold: 1
+    liveness:
+      enabled: true
+      path: "/cosmos-dms/actuator/health"
+      port: 9080
+      initialDelaySeconds: 10
+      periodSeconds: 60
+      failureThreshold: 3
+
+  imagePullSecrets:
+    - name: registrypullsecret
+
+  serviceAccount:
+    create: false
+    annotations: {}
+    name: ""
+
+  #podAnnotations:
+  #  prometheus.io/scrape: "true"
+  #  prometheus.io/port: "19000"
+  #  prometheus.io/path: "/actuator/prometheus"
+
+  podSecurityContext: {}
+
+  securityContext: {}
+
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 9080
+    annotations:
+      service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+
+  ingress:
+    enabled: true
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /$2
+      nginx.ingress.kubernetes.io/proxy-body-size: 50m
+    className: nginx
+    hosts:
+      - host: be-tst.factoring.yapikredi.com.tr
+        paths:
+          - "/fctr-dms-api(/|$)(.*)"
+    tls: []
+
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1300Mi
+    requests:
+      cpu: 200m
+      memory: 512Mi
+
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 2
+    # targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+  configMaps:
+    - name: application-config
+      labels: {}
+      annotations: {}
+      data:
+        path: "config/fctr/tst/**"
+        mountPath: "/etc/config"
+
+  env:
+    - name: JASYPT_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: jasypt-secret
+          key: jasypt-secret
+    - name: user.timezone
+      value: "Europe/Istanbul"
+    - name: SPRING_MAIN_CLOUDPLATFORM
+      value: "kubernetes"
+    - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAMESPACE
+      value: "tst-cloud-factoring"
+    - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAME
+      value: "fctr-dms-application-config"
+    - name: JAVA_OPTS
+      value: "-Djasypt.encryptor.password=$(JASYPT_PASSWORD) -Duser.timezone=Europe/Istanbul -Dlogging.config=/etc/config/logback-spring.xml -XX:MaxRAMPercentage=65.0 -XX:MinRAMPercentage=60.0"
+
