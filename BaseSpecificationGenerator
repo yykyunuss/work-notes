@@ -1,0 +1,88 @@
+package com.ykb.factoring.factoring.cheque.repository.specification.generator;
+
+import com.ykb.factoring.factoring.cheque.dto.generic.DateRange;
+import com.ykb.factoring.factoring.cheque.dto.generic.NumberRange;
+import com.ykb.factoring.factoring.cheque.repository.specification.universal.BetweenSpecification;
+import com.ykb.factoring.factoring.cheque.repository.specification.universal.DistinctSpecification;
+import com.ykb.factoring.factoring.cheque.repository.specification.universal.EqualSpecification;
+import com.ykb.factoring.factoring.cheque.repository.specification.universal.InSpecification;
+import com.ykb.factoring.factoring.cheque.repository.specification.universal.LessThanOrEqualToSpecification;
+import lombok.Getter;
+import org.springframework.data.jpa.domain.Specification;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+
+@Getter
+public abstract class BaseSpecificationGenerator<E, I> {
+
+    private List<Specification<E>> container;
+
+    public I initialize() {
+        container = new ArrayList<>();
+        return (I) this;
+    }
+
+    protected boolean addToContainer(Specification<E> spec) {
+        return Objects.nonNull(spec) && container.add(spec);
+    }
+
+    public Specification<E> generateViaAnd() {
+        if (container.isEmpty()) {
+            return null;
+        }
+
+        Specification<E> result = null;
+
+        for (Specification<E> eachSpec : container) {
+            result = Objects.isNull(result)
+                    ? Specification.where(eachSpec)
+                    : result.and(eachSpec);
+        }
+
+        return result;
+    }
+
+    public I equalExactly(String attribute, Object value) {
+        addToContainer(EqualSpecification.create(attribute, value));
+        return (I) this;
+    }
+
+    public I lessThanOrEqualTo(String attribute, Number value) {
+        addToContainer(LessThanOrEqualToSpecification.create(attribute, value));
+        return (I) this;
+    }
+
+    public I lessThanOrEqualTo(String attribute, Date value) {
+        addToContainer(LessThanOrEqualToSpecification.create(attribute, value));
+        return (I) this;
+    }
+
+    public I between(String attribute, NumberRange value) {
+        addToContainer(BetweenSpecification.create(attribute, value));
+        return (I) this;
+    }
+
+    public I between(String attribute, DateRange value) {
+        addToContainer(BetweenSpecification.create(attribute, value));
+        return (I) this;
+    }
+
+    public I in(String attribute, Collection<?> values) {
+        addToContainer(InSpecification.create(attribute, values));
+        return (I) this;
+    }
+
+    public I distinctModeOn() {
+        addToContainer(DistinctSpecification.create(true));
+        return (I) this;
+    }
+
+    public I distinctModeOff() {
+        addToContainer(DistinctSpecification.create(false));
+        return (I) this;
+    }
+}
