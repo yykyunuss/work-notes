@@ -1,0 +1,226 @@
+eureka:
+  instance:
+    preferIpAddress: true
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_URI:http://fctr-eureka-server.tst-cloud-factoring.svc.cluster.local/eureka/}
+
+server:
+  port: 9080
+  secure-endpoint-enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  health:
+    redis:
+      enabled: false
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 30MB
+      max-request-size: 30MB
+  cloud:
+    services:
+      registrationMethod: direct
+  datasource:
+    username: FACTORING
+    password: ENC(bxS4r9YVBmT+KRUZFpNw537xljjvqNRp)
+    url: jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=ykf-test.sys.yapikredi.com.tr)(PORT=1923))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=SRVTEST_YKF)))
+    driver-class-name: oracle.jdbc.OracleDriver
+    hikari:
+      connection-timeout: 20000
+      minimum-idle: 10
+      maximum-pool-size: 20
+      idle-timeout: 10000
+      max-lifetime: 30000
+  redis:
+    host: 10.100.200.28
+  jpa:
+    database-platform: org.hibernate.dialect.Oracle10gDialect
+    show-sql: false
+    hibernate:
+      ddl-auto: none #none || update || create
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: GMT+3
+      org:
+        hibernate:
+          envers:
+            audit_table_suffix: _AUDIT
+            revision_field_name: REVISION_ID
+            revision_type_field_name: REVISION_TYPE
+            store_data_at_delete: true
+  output:
+    ansi:
+      enabled: ALWAYS
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 120000
+        readTimeout: 120000
+        loggerLevel: FULL
+  hystrix:
+    enabled: true
+  okhttp:
+    enabled: true
+  httpclient:
+    enabled: false
+    disableSslValidation: true
+
+barcode:
+  prefix: YKF
+
+scheduled:
+  enabled: false
+
+# BELOW CONFIGURATION IS NOT COMMON BUT REQUIRED
+external:
+  client:
+    name: UNKNOWN.CLIENT
+  workflow-main:
+    name: UNKNOWN.WORKFLOW
+  workflow:
+    name: UNKNOWN.NAME
+    url: UNKNOWN.URL
+  user:
+    name: FACTORING.FACTORING.FCTR-USER
+    url: http://fctr-user.tst-cloud-factoring.svc.cluster.local/nl-user
+  storage:
+    name: COSMOS.DMS.fctr-file-adapter
+    path: /api/documents
+    url: http://fctr-file-adapter.tst-cloud-factoring.svc.cluster.local
+  edison:
+    name: EdisonApi
+    url: http://fctr-edison.tst-cloud-factoring.svc.cluster.local/api
+  external-services:
+    name: FACTORING.FACTORING.FCTR-EXTERNAL-SERVICES
+    url: http://fctr-external-services.tst-cloud-factoring.svc.cluster.local
+  nbs-adapter:
+    name: UNKNOWN.NBS-ADAPTER
+  email:
+    url: UNKNOWN.URL
+  log:
+    environment: test
+  logstash:
+    enabled: false
+
+bulk:
+  application:
+    name: UNKNOWN.BULKMONEYTRANSFER
+  mail-received: unknown
+
+service-discovery:
+  eureka:
+    nbs-adapter: FACTORING.FACTORING.fctr-document-search-be
+
+oauth-providers:
+  microsoft:
+    tenant-id: dbe3862b-5149-4730-ad01-829130fb13b7
+    grant-type: client_credentials
+    client-id: 53088075-7b4f-467d-a5bb-878e1cfe5a1a
+    scope: https://graph.microsoft.com/.default
+    auth-url: https://login.microsoftonline.com/${oauth-providers.microsoft.tenant-id}/oauth2/v2.0/token
+
+graph:
+  service-url: https://graph.microsoft.com/v1.0
+  email:
+    user-id: 1b83979a-895b-4317-9b5b-5540cbffd212
+    change-type: created
+    select-query-params: subject,from,receivedDateTime,hasAttachments,isRead
+    filter-query-params: isRead eq false # and hasAttachments eq true
+    expand-query-params: attachments
+
+# ABOVE CONFIGURATION IS NOT COMMON BUT REQUIRED
+
+jasypt:
+  encryptor:
+    algorithm: PBEWithMD5AndDES
+    iv-generator-classname: org.jasypt.iv.NoIvGenerator
+
+springdoc:
+  swagger-ui:
+    configUrl: ../v3/api-docs/swagger-config
+    url: ../v3/api-docs
+
+swagger:
+  server-url: /fctr-dms-api
+
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 120000
+
+logging:
+  level:
+    root: ERROR
+    com:
+      ykb: INFO
+
+logbook:
+  include:
+    - /cosmos-dms/**
+  exclude:
+    - /cosmos-dms/actuator/**
+  filter.enabled: true
+  secure-filter.enabled: true
+  format.style: json
+  strategy: default
+  minimum-status: 200
+  obfuscate:
+    headers:
+      - Authorization
+    parameters:
+      - password
+    body-parameters: password
+
+aspose:
+  image-format: png
+  image-dpi: 75
+  path: aspose/Aspose.Total.Java.lic
+  thread-count: 10
+  barcode-with-ratio: 6 #barcode eninin, page enine oranı
+
+document-pool:
+  role-match:
+    CENTRAL_REGISTRY:
+      upload: CR
+      fetch-list:
+        - CR
+    FINANCIAL_INSTITUTION:
+      upload: FI
+      fetch-list:
+        - FI
+    PRIVATE_SALE:
+      upload: PRIV
+      fetch-list:
+        - PRIV
+    RETAIL_SALE:
+      upload: RETL
+      fetch-list:
+        - RETL
+    CORPORATE_SALE:
+      upload: CORP
+      fetch-list:
+        - CORP
+    ROLE_DEVELOPER:
+      upload: CR
+      fetch-list:
+        - FI
+        - CORP
+        - RETL
+        - CR
+        - PRIV
+
+features:
+  approval-requirement: false
+  client-Api-exist: false
