@@ -1,0 +1,15 @@
+package com.ykb.factoring.factoring.cheque.repository.query;
+
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class ChequeInfoQuery {
+    public static final String FIND_CHEQUE_BY_MICR = """
+            SELECT * FROM CHEQUE_INFO CI
+                WHERE CI.CHEQUE_NO = :#{#chequeMICR.chequeNo} 
+                AND CI.BANK_CODE = :#{#chequeMICR.bankCode} 
+                AND CI.BRANCH_CODE = :#{#chequeMICR.branchCode} 
+                AND CI.ACCOUNT_NO = :#{#chequeMICR.accountNo}
+            """;
+}
