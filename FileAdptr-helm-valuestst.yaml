@@ -1,0 +1,113 @@
+# Default values for example-python.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+# This file has been prepared for sample purposes only. You must configure according to your app's needs.
+replicaCount: 1
+
+image:
+  repository: sdlc.yapikredi.com.tr/internal-docker-app/com/ykb/factoring/factoring/fctr-file-adapter
+  pullPolicy: Always
+  tag: "latest-tst"
+  ports:
+    containerPort: 5000
+  readiness:
+    enabled: true
+    path: "/actuator/health"
+    port: 5000
+    initialDelaySeconds: 10
+    periodSeconds: 30
+    failureThreshold: 3
+    successThreshold: 1
+  liveness:
+    enabled: true
+    path: "/actuator/health"
+    port: 5000
+    initialDelaySeconds: 10
+    periodSeconds: 120
+    failureThreshold: 3
+
+imagePullSecrets:
+  - name: registrypullsecret
+
+nameOverride: ""
+fullnameOverride: ""
+
+initContainers:
+  enabled: true
+  containers:
+    - dynatrace
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+
+podAnnotations: {}
+
+podSecurityContext: {}
+# fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+# readOnlyRootFilesystem: true
+# runAsNonRoot: true
+# runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 5000
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+
+ingress:
+  enabled: false
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "Host $host";
+      more_set_headers "X-Real-IP $remote_addr";
+      more_set_headers "X-Forwarded-For $proxy_add_x_forwarded_for";
+      more_set_headers "X-Forwarded-Proto $scheme";
+      more_set_headers "X-Forwarded-Host $host";
+  hosts:
+    - host: be-tst.factoring.yapikredi.com.tr
+      paths:
+        - "/fctr-file-adapter-api(/|$)(.*)"
+  tls: []
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1024Mi
+  requests:
+    cpu: 100m
+    memory: 250Mi
+
+configMaps:
+  - name: application-config
+    labels: {}
+    annotations: {}
+    data:
+      path: "config/tst/**"
+      mountPath: "/app/config"
+      
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80      
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+deploymentEnvironment: Test
