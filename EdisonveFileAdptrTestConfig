@@ -1,0 +1,76 @@
+C# TEST CONFIG'I :
+
+GlobalUsing.cs:
+
+global using NUnit.Framework;
+
+Dependency packages:
+* coverlet.collector(3.2.0)
+* Microsoft.NET.Test.Sdk
+* Moq (4.20.69)
+* NUnit (3.13.3)
+* NUnit.Analyzers (3.6.1)
+* NUnit3TestAdapter (4.4.2)
+
+
+FILEADAPTER .csproj file -->
+
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.13" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="6.0.24" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="6.0.24" />
+    <PackageReference Include="Oracle.EntityFrameworkCore" Version="7.21.11" />
+    <PackageReference Include="Serilog" Version="3.0.1" />
+    <PackageReference Include="Serilog.AspNetCore" Version="6.1.0" />
+    <PackageReference Include="Serilog.Enrichers.Environment" Version="2.2.0" />
+    <PackageReference Include="SharpCifs.Std" Version="0.2.13" />
+    <PackageReference Include="Steeltoe.Common" Version="2.4.1" />
+    <PackageReference Include="Steeltoe.Common.Net" Version="2.4.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Services\" />
+  </ItemGroup>
+
+</Project>
+
+UnitTests1.cs:
+
+namespace Fctr.Edison.FileAdapter.Tests;
+
+public class Tests
+{
+    [SetUp]
+    public void Setup()
+    {
+        // Method intentionally left empty.
+    }
+
+    [Test]
+    public void Test1()
+    {
+        Assert.Pass();
+    }
+}
+
+
+
+
+
+
+
+
