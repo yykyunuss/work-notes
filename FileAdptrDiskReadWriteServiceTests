@@ -1,0 +1,120 @@
+using Fctr.Edison.FileAdapter.Services;
+using Fctr.Edison.FileAdapter.Settings;
+using Moq;
+using Microsoft.Extensions.Logging;
+using Fctr.Edison.FileAdapter.Repositories.Models;
+using Fctr.Edison.FileAdapter.DataAccess;
+using Fctr.Edison.NetCore.Core.File;
+using Fctr.Edison.FileAdapter.Models;
+using System.Net;
+
+namespace Fctr.Edison.FileAdapter.Tests.ServiceTests
+{
+    public class DiskReadAndWriteServiceTests
+    {
+        private Mock<IEntityRepository<DocumentPoolAdapter>> _entityRepository;
+        private List<DocumentPoolAdapter> documentPoolAdapters;
+        private StorageAreaSetting storageAreaSetting;
+        private Mock<ILogger<DiskReadAndWriteService>> ilogger;
+        private Mock<FileManager> mockFileManager;
+
+        [SetUp]
+        public void Setup(){
+            storageAreaSetting = new StorageAreaSetting() { StoragePath = "testStoragePath\\", StorageFolder = "testFolder" };
+            
+            ilogger = new Mock<ILogger<DiskReadAndWriteService>>(); 
+
+            _entityRepository = new Mock<IEntityRepository<DocumentPoolAdapter>>();
+            documentPoolAdapters = new List<DocumentPoolAdapter>
+            {
+                new() { Id = 1, DocumentId = 4, DocumentName = "test name", Status = "A" },
+                new() { Id = 2, DocumentId = 2, DocumentName = "name2", Status = "A" }
+            };
+
+            mockFileManager =  new Mock<FileManager>();           
+        } 
+
+        [Test]
+        public void Find_Document()
+        {
+            _entityRepository.Setup(a => a.GetAllQueryable()).
+            Returns(documentPoolAdapters.AsQueryable());
+            var diskReadAndWriteService = new DiskReadAndWriteService(_entityRepository.Object,
+             storageAreaSetting, ilogger.Object);
+            long documentId = 4;
+            var result = diskReadAndWriteService.FindDocument(documentId);
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.DocumentId, Is.EqualTo(4));           
+        }
+
+        [Test]
+        public void Save_Document() {
+            var diskReadAndWriteService = new DiskReadAndWriteService(_entityRepository.Object,
+                storageAreaSetting, ilogger.Object);
+
+            var folderPath = "Pool_Documents";
+            var username = "test user";
+            var password = "test pass";
+            var hostPath = "test host";
+            var allPath = "all path";
+
+            string content = "abcd";
+            var base64content = Convert.FromBase64String(content);
+
+            mockFileManager.Setup(a => a.WriteFileContentAsync(hostPath, allPath, folderPath, base64content,
+                "", username, password, ilogger.Object)).Verifiable();
+
+            DocumentPoolAdapter poolAdapter = new DocumentPoolAdapter() {
+                Id = 1,
+                DocumentId = 2,
+                DocumentName = "test name",
+                StoragePath = "test storage path",
+                FilePath = "test file path",
+                ContentPath = "test content path",
+                Version = 2,
+                CreateDate = DateTime.Now,
+                CreatedBy = "admin"
+            };
+
+            _entityRepository.Setup(a => a.Insert(poolAdapter)).Verifiable();
+
+            long documentId = 2;
+            string documentName = "test name";
+            _ = diskReadAndWriteService.SaveDocument(content, documentId, documentName);
+
+            Mock.Verify();
+            Mock.VerifyAll();
+        }
+ 
+        [Test]
+        public void Read_Document_From_Disk_Async() {
+            var diskReadAndWriteService = new DiskReadAndWriteService(_entityRepository.Object,
+                storageAreaSetting, ilogger.Object);
+
+            var username = "test user";
+            var password = "test pass";
+            var storagePath = "storage path";
+            var path = "path";
+
+            string content = "abcd";
+            var base64content = Convert.FromBase64String(content);
+
+            mockFileManager.Setup(a => a.ReadFileContentAsync(storagePath, path, "",
+                username, password, ilogger.Object)).ReturnsAsync(base64content).Verifiable();
+
+            ResponseDocumentPoolAdapter poolAdapter = new ResponseDocumentPoolAdapter() {
+                Id = 1,
+                DocumentId = 1,
+                DocumentName = "testName",
+                FilePath = "testFilePath",
+                StoragePath = "\\\\dysnas.sys.yapikredi.com.tr"
+            };
+
+            var byteArrayResult = diskReadAndWriteService.ReadDocumentFromDiskAsync(poolAdapter);
+            
+            Assert.That(byteArrayResult, Is.Not.Null);
+            Mock.VerifyAll();
+        }
+    }
+}
