@@ -1,0 +1,64 @@
+using Fctr.Edison.FileAdapter.Controllers;
+using Fctr.Edison.FileAdapter.Interfaces;
+using Fctr.Edison.FileAdapter.Models;
+using Moq;
+
+namespace Fctr.Edison.FileAdapter.Tests.ControllerTests
+{
+    [TestFixture]
+    public class DocumentReadWriteControllerTests
+    {
+        private Mock<IDiskReadAndWriteService> mockDiskReadAndWriteService;
+        private DocumentReadWriteController documentReadWriteController;
+
+        [SetUp]
+        public void SetUp()
+        {
+            mockDiskReadAndWriteService = new Mock<IDiskReadAndWriteService>();
+            documentReadWriteController = new DocumentReadWriteController(mockDiskReadAndWriteService.Object);
+        }
+
+        [Test]
+        public async Task Save_Document_To_Disk_And_Db()
+        {
+            mockDiskReadAndWriteService.Setup(_ => _.SaveDocument(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<string>()));
+
+            var request = new RequestDocumentPoolAdapter { GeneratedFileName = 1, OriginalFileName = "Test", Content = "abcdefg" };
+
+            var result = await documentReadWriteController.SaveDocument(request);
+
+            Assert.That(result, Is.Not.Null);
+        } 
+
+        [Test]
+        public async Task Read_Document_From_Disk()
+        {
+            ResponseDocumentPoolAdapter responseDocumentPoolAdapter = new()
+            {
+                Id = 1,
+                DocumentId = 1,
+                DocumentName = "1",
+                StoragePath = "\\storage",
+                FilePath = "\\file"
+            };
+            mockDiskReadAndWriteService.Setup(_ => _.FindDocument(It.IsAny<long>())).Returns(responseDocumentPoolAdapter);
+
+            string str = "abcd";
+            byte[] byteArray = Convert.FromBase64String(str);
+
+            mockDiskReadAndWriteService.Setup(_ => _.ReadDocumentFromDiskAsync(It.IsAny<ResponseDocumentPoolAdapter>())).ReturnsAsync(byteArray);
+
+            long id = 1;
+            var result = await documentReadWriteController.ReadDocumentFromDisk(id);
+
+            ResponseDocumentContent documentContent = new ResponseDocumentContent() {
+                Data = result.Value?.Data,
+                Status = result.Value?.Status
+            };
+            
+            Assert.That(documentContent, Is.Not.Null);
+            Assert.That(documentContent.Status, Is.EqualTo("SUCCESS"));
+            Assert.That(documentContent.Data, Is.EqualTo("abcd"));
+        }
+    }
+}
