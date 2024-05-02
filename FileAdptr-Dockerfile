@@ -1,0 +1,64 @@
+FROM sdlc.yapikredi.com.tr/internal-docker-ops/ykb/os/base-images/dotnet/sdk:6.03 AS build
+WORKDIR /source
+
+ARG ARTIFACTORY_USERNAME
+ARG ARTIFACTORY_PASSWORD
+## Arguments for setting the Sonarqube Token and the Project Key
+ARG SONAR_TOKEN
+ARG SONAR_PROJECT_KEY
+ARG SONAR_PROJECT_NAME
+ARG BRANCH_NAME
+## Setting the Sonarqube and Uri
+ENV SONAR_HOST "https://sdlc.yapikredi.com.tr/sonarenterprise"
+
+RUN dotnet nuget add source https://sdlc.yapikredi.com.tr/artifactory/api/nuget/external-dotnet-nuget -n YKBNuget -u $ARTIFACTORY_USERNAME -p $ARTIFACTORY_PASSWORD --store-password-in-clear-text
+RUN dotnet nuget Enable source "YKBNuget"
+RUN dotnet nuget disable source "nuget.org"
+
+# Just to see if two lines above work
+RUN dotnet nuget list source
+
+RUN dotnet tool install --global dotnet-sonarscanner --version 5.15.0  --add-source https://sdlc.yapikredi.com.tr/artifactory/api/nuget/external-dotnet-nuget
+RUN dotnet tool install --global dotnet-coverage
+RUN dotnet tool install --global dotnet-reportgenerator-globaltool  --add-source https://sdlc.yapikredi.com.tr/artifactory/api/nuget/external-dotnet-nuget
+
+ENV PATH="${PATH}:/root/.dotnet/tools"
+
+COPY Fctr.Edison.FileAdapter/*.csproj ./Fctr.Edison.FileAdapter/
+COPY Fctr.Edison.FileAdapter/. ./Fctr.Edison.FileAdapter/
+
+COPY Fctr.Edison.FileAdapter.Tests/*.csproj ./Fctr.Edison.FileAdapter.Tests/
+COPY Fctr.Edison.FileAdapter.Tests/. ./Fctr.Edison.FileAdapter.Tests/
+
+
+
+WORKDIR /source/Fctr.Edison.FileAdapter 
+
+RUN dotnet sonarscanner begin \
+	/k:"$SONAR_PROJECT_KEY" \
+	/d:sonar.host.url="$SONAR_HOST" \
+	/d:sonar.login="$SONAR_TOKEN" \
+    /n:"$ARTIFACT_NAME" \
+    /d:sonar.branch.name="$BRANCH_NAME" \
+    /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml 
+
+RUN dotnet restore -s https://sdlc.yapikredi.com.tr/artifactory/api/nuget/external-dotnet-nuget
+
+## Build the app
+RUN dotnet build -c Release --no-restore
+
+## Run dotnet test setting the output on the /coverage folder
+RUN dotnet-coverage collect "dotnet test /source/Fctr.Edison.FileAdapter.Tests/Fctr.Edison.FileAdapter.Tests.csproj" -f xml -o "coverage.xml"
+
+## Create the code coverage file in sonarqube format using the cobertura file generated from the dotnet test command
+#RUN reportgenerator "-reports:./coverage/*/coverage.cobertura.xml" "-targetdir:coverage" "-reporttypes:SonarQube"
+
+RUN dotnet publish -c Release -o /app --source https://sdlc.yapikredi.com.tr/artifactory/api/nuget/external-dotnet-nuget
+
+RUN dotnet sonarscanner end /d:sonar.login="$SONAR_TOKEN"
+
+# Build runtime image
+FROM sdlc.yapikredi.com.tr/internal-docker-ops/ykb/os/base-images/dotnet/aspnet:6.0-1
+WORKDIR /app
+COPY --from=build /app ./
+ENTRYPOINT ["dotnet", "Fctr.Edison.FileAdapter.dll"]
