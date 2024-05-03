@@ -1,0 +1,85 @@
+eureka:
+  instance:
+    preferIpAddress: true
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_URI:http://fctr-eureka-server.tst-cloud-factoring.svc.cluster.local/eureka/}
+
+server:
+  port: 8086
+  secure-endpoint-enabled: false
+
+logging:
+  level:
+    root: ERROR
+    com:
+      netflix: INFO
+      ykb: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: ["health", "prometheus"]
+        
+jasypt:
+  encryptor:
+    algorithm: PBEWithMD5AndDES
+    iv-generator-classname: org.jasypt.iv.NoIvGenerator
+    
+spring:
+  servlet:
+    multipart:
+      max-file-size: 30MB
+      max-request-size: 30MB
+  cloud:
+    services:
+      registrationMethod: direct
+  datasource:
+    username: FACTORING
+    password: ENC(bxS4r9YVBmT+KRUZFpNw537xljjvqNRp)
+    url: jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=ykf-test.sys.yapikredi.com.tr)(PORT=1923))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=SRVTEST_YKF)))
+    driver-class-name: oracle.jdbc.OracleDriver
+    hikari:
+      connection-timeout: 20000
+      minimum-idle: 10
+      maximum-pool-size: 20
+      idle-timeout: 10000
+      max-lifetime: 30000
+  jpa:
+    database-platform: org.hibernate.dialect.Oracle10gDialect
+    hibernate:
+      ddl-auto: none #none || update || create
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: GMT+3
+      org:
+        hibernate:
+          envers:
+            audit_table_suffix: _AUDIT
+            revision_field_name: REVISION_ID
+            revision_type_field_name: REVISION_TYPE
+            store_data_at_delete: true
+  output:
+    ansi:
+      enabled: ALWAYS
+
+be:
+  external-services:
+    name: FACTORING.FACTORING.fctr-external-services
+  external-services-bff:
+    name: FACTORING.FACTORING.fctr-external-services-bff
+  customer:
+    name: FACTORING.FACTORING.fctr-customer-be
+    path: /fctr-customer-be
+  data-science:
+    name: EXTERNAL.DATA-SCIENCE
+    url: http://chequemate.arge.yapikredi.com.tr
+  common-services:
+    name: FACTORING.FACTORING.fctr-common-services
+  miletos:
+    name: EXTERNAL.MILETOS
+    url: https://checkocr.yapikredi.com.tr
+    path: /api/v1
+    key: F6071D1D9D5E9021D8C9BEBECCED0416DF210567970AADECB96E87555F5B88F4
