@@ -1,0 +1,29 @@
+{
+  "Serilog": {
+    "MinimumLevel": {
+      "Default": "Information",
+        "Override": {
+            "Microsoft": "Warning",
+            "Microsoft.Hosting.Lifetime": "Information",
+            "Fctr.Edison.FileAdapter.Controllers": "Debug",
+            "Microsoft.Extensions.Diagnostics.HealthChecks": "Debug"
+        }
+    },
+    "WriteTo": [
+      {
+        "Name": "Console"
+      }
+    ]
+  },
+  "ConnectionStrings": {
+    "docyon": "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=ykf-test.sys.yapikredi.com.tr)(PORT=1923))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=SRVTEST_YKF))); User Id=FACTORING; Password=Gundabad_23; Validate Connection=true; Min Pool Size=20; max pool size=20;"
+  },
+  "ServiceSettings": {
+    "StorageAreaSetting": {
+      "UserName": "KFS\\SRVFCTR",
+      "Pass": "Pk!ewTbp2z8r",
+      "StoragePath": "\\\\dysnas.sys.yapikredi.com.tr\\Faktoring_DYS_Test",
+      "StorageFolder": "Pool_Documents"
+    }
+  }
+}
