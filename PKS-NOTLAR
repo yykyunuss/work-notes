@@ -1,0 +1,13 @@
+pod silip yeniden başlatma komutu -->
+
+kubectl delete pod fctr-edison-7cd6dc5785-vg6hx -n tst-cloud-factoring
+
+
+pod listeleme -->
+
+pkslist
+
+login komutu -->
+
+pksloginarg <sicil>
+pksloginarg u0t15708
