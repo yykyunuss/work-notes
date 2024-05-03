@@ -1,0 +1,257 @@
+eureka:
+  client:
+    enabled: true
+
+file:
+  limit: 30
+
+server:
+  port: 9082
+  secure-endpoint-enabled: false
+  use-forward-headers: true
+  forward-headers-strategy: framework
+  servlet:
+    contextPath: /cosmos-dms
+  tomcat:
+    max-http-post-size: 40MB
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: ${file.limit}MB
+      max-request-size: 50MB
+  redis:
+    password: i17KUGqyk+
+    cluster:
+      nodes:
+        - 10.6.39.175:6379
+
+  datasource:
+    username: FACTORING
+    password: ENC(SyAuSi9HlWwXQA7D4eN4OmWJZ8smA1CK)
+    url: jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=ykf-test.sys.yapikredi.com.tr)(PORT=1923))(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=SRVTEST_YKF)))
+    driver-class-name: oracle.jdbc.OracleDriver
+    hikari:
+      connection-timeout: 20000
+      minimum-idle: 10
+      maximum-pool-size: 20
+      idle-timeout: 10000
+      max-lifetime: 30000
+  jpa:
+    hibernate:
+      dialect: org.hibernate.dialect.Oracle12cDialect
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.Oracle12cDialect
+        ddl-auto: none
+        jdbc:
+          time_zone: CET #GMT+3 CET UTC
+        event:
+          merge:
+            entity_copy_observer: allow
+        format_sql: false
+      org:
+        hibernate:
+          envers:
+            audit_table_suffix: _AUDIT
+            revision_field_name: REVISION_ID
+            revision_type_field_name: REVISION_TYPE
+            store_data_at_delete: true
+
+  output:
+    ansi:
+      enabled: ALWAYS
+
+logging:
+  level:
+    root: WARN
+    com:
+      ykb: INFO
+    net.javacrumbs.shedlock: DEBUG
+    org.zalando.logbook: TRACE
+
+timezone: GMT+3 #GMT+3 UTC CET
+
+external:
+  client:
+    name: NETHERLANDS.CLIENT.client
+    url: 10.6.39.159
+  workflow-main:
+    name: NETHERLANDS.WORKFLOW.workflow-main
+    url: https://be.test.netherlands.yapikredi.com.tr/workflow-main-api
+  storage:
+    name: NETHERLANDS.DMS.nl-azure-storage-adapter
+    path: /cosmos-azure-storage-adapter/api/document
+    url: 10.6.39.195
+  edison:
+    name: EdisonApi
+    url: https://be-tst.factoring.yapikredi.com.tr/fctr-edison-api/api
+  nbs-adapter:
+    name: NETHERLANDS.NLSERVICES.nbs-adapter
+    url: 10.6.39.187
+  log:
+    environment: dev
+  logstash:
+    enabled: false
+  external-services:
+    name: FACTORING.FACTORING.FCTR-EXTERNAL-SERVICES
+    url: https://fctrgateway.test.factoring.yapikredi.com.tr/fctr-gateway-bff/fctr-external-services
+  user:
+    name: COSMOS.USER.cosmos-user
+    url: https://be.test.netherlands.yapikredi.com.tr/cosmos-user
+  workflow:
+    name: COSMOS.USER.cosmos-user
+    url: https://be.test.netherlands.yapikredi.com.tr/cosmos-user
+  email:
+    url: http://faradayinternationaltest.yapikredi.com.tr/Email/EmailOperations.svc
+
+smtp:
+  processes:
+    - emailAddress: test.payments@yapikredi.nl
+      process: bulkPaymentProcess
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 120000
+        readTimeout: 120000
+        loggerLevel: FULL
+  hystrix:
+    enabled: true
+  okhttp:
+    enabled: true
+  httpclient:
+    enabled: false
+    disableSslValidation: true
+
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 120000
+
+jasypt:
+  encryptor:
+    algorithm: PBEWithMD5AndDES
+    iv-generator-classname: org.jasypt.iv.NoIvGenerator
+
+management:
+  endpoint:
+    health:
+      show-details: always
+
+springdoc:
+  swagger-ui:
+    configUrl: ../v3/api-docs/swagger-config
+    url: ../v3/api-docs
+
+swagger:
+  server-url:
+
+scheduled:
+  enabled: false
+  cron: 0 0/1 08-20 * * *
+  zone: Europe/Istanbul
+  daily-cron: 0 0 1 * * *
+
+bulk:
+  application:
+    name: NETHERLANDS.BULKMONEYTRANSFER.bulk-money-transfer-be
+  mail-received: bulk-money-transfer-be/dms/mail-received
+
+oauth-providers:
+  microsoft:
+    tenant-id: dbe3862b-5149-4730-ad01-829130fb13b7
+    grant-type: client_credentials
+    client-id: 53088075-7b4f-467d-a5bb-878e1cfe5a1a
+    client-secret:
+    scope: https://graph.microsoft.com/.default
+    auth-url: https://login.microsoftonline.com/${oauth-providers.microsoft.tenant-id}/oauth2/v2.0/token
+
+graph:
+  service-url: https://graph.microsoft.com/v1.0
+  email:
+    change-type: created
+    select-query-params: subject,from,receivedDateTime,hasAttachments,isRead,ccRecipients
+    filter-query-params: isRead eq false # and hasAttachments eq true
+    expand-query-params: attachments
+  read-by-date-filter: isRead eq true and receivedDateTime ge %s and receivedDateTime lt %s
+  agreement-day-before: 1
+  agreement-mail: umut.coskun@external.yapikredi.com.tr #
+  bulk-user-id: 1b83979a-895b-4317-9b5b-5540cbffd212
+  scanner-user-id: 25b71383-6baa-4514-9fb9-c73c2a535f18
+  entity-user-id: 25b71383-6baa-4514-9fb9-c73c2a535f18
+  corporate-user-id: 7f81845c-2580-461b-b6e8-50b6f5aa5aaf
+  corporate-sales-user-id: 7f81845c-2580-461b-b6e8-50b6f5aa5aaf
+  central-registry-user-id: 7f81845c-2580-461b-b6e8-50b6f5aa5aaf
+  financial-institution-user-id: 7f81845c-2580-461b-b6e8-50b6f5aa5aaf
+  private-sales-user-id: 7f81845c-2580-461b-b6e8-50b6f5aa5aaf
+  retail-sales-user-id: 46578f09-cb70-4f49-ae08-bd7938c76ef0
+  loan-admin-user-id: 46578f09-cb70-4f49-ae08-bd7938c76ef0
+  corporate:
+    mandatory-cc-count: 2
+    cutoff:
+      hour: 14
+      minute: 30
+  scanners:
+    - oceclr@iletisim.yapikredi.nl
+    - dogan.sever2@ykteknoloji.com.tr
+  sales-mail-address: eylul.ayhaner@ykteknoloji.com.tr
+
+access:
+  channel:
+    mobile:
+      - docTypeForMobile
+      - docType2ForMobile
+
+
+logbook:
+  include:
+    - /cosmos-dms/**
+  exclude:
+    - /cosmos-dms/actuator/**
+    - /cosmos-dms/v1/document/content-list
+    - /cosmos-dms/document/upload-file
+    - /cosmos-dms/document/upload-files
+    - /cosmos-dms/document/content/**
+  filter.enabled: true
+  secure-filter.enabled: true
+  format.style: json
+  strategy: default
+  minimum-status: 200
+  obfuscate:
+    headers:
+      - Authorization
+    parameters:
+      - password
+    body-parameters: password
+
+barcode:
+  prefix: YKN
+
+aspose:
+  image-format: png
+  image-dpi: 50
+  path: aspose/Aspose.Total.Java.lic
+  thread-count: 10
+  barcode-with-ratio: 6 #barcode eninin, page enine oranı
+
+cache:
+  enabled: true
+  max-count: 2000
+  ttl-in-seconds: 86400
+
+app-email:
+  username: SYSTEM-GEN
+  alias: Yapi Kredi Bank AG
+  from: noreply@iletisim.yapikredi.nl
+
+features:
+  approval-requirement: true
+  client-Api-exist: true
+  file-optimize: true
