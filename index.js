@@ -1,0 +1,9 @@
+import Bootstrap, { setCookie } from "factor-shell";
+import routes from "./routes";
+
+setCookie(
+  "token-tst",
+  "eyJhbGciOiJIUzUxMiJ9.eyJzZXNzaW9uVHJhY2tlciI6ImY1NDQyMTRhLTg1ZWYtNDNkYS05MGI2LWI0ZTUwNWUzNzJhMiIsImJyYW5jaENvZGUiOiIxMCIsImF1dGgiOiJST0xFX1VTRVIiLCJyb2xlcyI6WyJ0ZXN0MTIzdGVzdCIsIkZBIl0sInVzZXJOYW1lIjoiWXVudXMgS8O8w6fDvGsiLCJ1c2VyQ29kZSI6IllTVTBUMTU3MDgiLCJzdWIiOiJZU1UwVDE1NzA4IiwianRpIjoiOWUyODhmNWYtMmYzNC00NmI5LWJjNDMtOWJkOWMwYmQ5ODgzIiwiaWF0IjoxNzE0NjUzNDYwLCJleHAiOjE3MTQ2OTY2NjB9.wH5VLo4IvGAtdyKri7i-7fEJS7XSGm43knblPSfoTUcctLVVFzfXpLVVUjApb_ibA-46zwOkp01ik_5I--Si-Q"
+);
+
+Bootstrap(routes);
