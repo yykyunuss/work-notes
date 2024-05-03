@@ -311,5 +311,125 @@ export const quarterSpan = { xs: 24, sm: 12, md: 6 };
 export const fullSpan = { span: 24 };
 
 
+import { IndexInfoItemDto, RoleItemDto } from "./types";
+
+export const halfSpan = { xs: 24, md: 12 };
+export const quarterSpan = { xs: 24, sm: 12, md: 6 };
+export const oneOfThreeSpan = { xs: 24, sm: 16, md: 8 };
+export const halfQuarterSpan = { xs: 12, sm: 6, md: 3 };
+export const fullSpan = { span: 24 };
+
+export type GenericObject = {
+  [key: string]: any;
+};
+
+export const statusOptions = [
+  {
+    label: "Aktif",
+    value: "ACTIVE",
+  },
+  {
+    label: "Pasif",
+    value: "PASSIVE",
+  },
+];
+
+const ENVIRONMENT_POSTFIX = process.env.REACT_APP_ENVIRONMENT_POSTFIX
+  ? "-" + process.env.REACT_APP_ENVIRONMENT_POSTFIX
+  : "";
+
+const getCookieName = (cname: string) => {
+  return cname === "token" ? cname + ENVIRONMENT_POSTFIX : cname;
+};
+
+export function getCookie(cname: string) {
+  const name: string = getCookieName(cname) + "=";
+  const ca: string[] = document.cookie.split(";");
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) == " ") {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}
+
+export const getBaseUrl = (): string => {
+  return (
+    process.env.REACT_APP_GATEWAY_BFF +
+    "/" +
+    process.env.REACT_APP_API_NAME +
+    "/" +
+    (process.env.REACT_APP_API_BFF_PATH ? process.env.REACT_APP_API_BFF_PATH : "cosmos-dms-bff")
+  );
+};
+
+export const getStatusName = (value: any) => {
+  return statusOptions.find(s => s.value === value)?.label || "-";
+};
+
+export const getStatusValue = (label: any) => {
+  return statusOptions.find(s => s.label === label)?.value;
+};
+
+export const getNewId = (indexInfos: IndexInfoItemDto[]): number => {
+  let number = 0;
+
+  indexInfos.forEach(ii => {
+    if (ii.id && ii.id > number) {
+      number = ii.id;
+    }
+  });
+
+  number += 1;
+
+  return number;
+};
+
+export const getNewIdForRole = (roles: RoleItemDto[]): number => {
+  let number = 0;
+
+  roles.forEach(ii => {
+    if (ii.id && ii.id > number) {
+      number = ii.id;
+    }
+  });
+
+  number += 1;
+
+  return number;
+};
+
+export const isAlphaNumeric = (name: string) => {
+  return RegExp(/^[a-zA-Z0-9_]*$/).exec(name) !== null;
+};
+
+export const dateSorter = (a: any, b: any, sortOrder: string, sortColumn: any): number => {
+  const aDate = a.createDate ? new Date(a.createDate) : new Date();
+  const bDate = b.createDate ? new Date(b.createDate) : new Date();
+
+  return bDate.getTime() - aDate.getTime();
+};
+
+export const isFactor = () => {
+  return process.env.REACT_APP_PUBLIC_NAME === "fctr-dms-ui";
+};
+
+export const getFilterObjectWithValues = (values: any) => {
+  const filteredObject: GenericObject = {};
+
+  Object.entries(values).forEach(([key, value]) => {
+    if (value !== null && value !== undefined && value !== "") {
+      filteredObject[key] = value;
+    }
+  });
+
+  return filteredObject;
+};
+
+
 
 
