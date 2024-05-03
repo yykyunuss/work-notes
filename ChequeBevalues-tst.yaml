@@ -1,0 +1,105 @@
+replicaCount: 1
+
+image:
+  repository: sdlc.yapikredi.com.tr/internal-docker-app/com/ykb/factoring/factoring/fctr-cheque-be
+  pullPolicy: Always
+  tag: "latest-tst"
+  ports:
+    containerPort: 8086
+  readiness:
+    enabled: true
+    path: "/actuator/health"
+    port: 8086
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    failureThreshold: 3
+    successThreshold: 1
+  liveness:
+    enabled: true
+    path: "/actuator/health"
+    port: 8086
+    initialDelaySeconds: 10
+    periodSeconds: 60
+    failureThreshold: 3
+
+imagePullSecrets:
+  - name: registrypullsecret
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: ""
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8086"
+  prometheus.io/path: "/actuator/prometheus"
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8086
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+
+ingress:
+  enabled: false
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+  className: nginx
+  hosts:
+    - host: be-tst.factoring.yapikredi.com.tr
+      paths:
+        - "/fctr-cheque-be-api(/|$)(.*)"
+  tls: []
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 1024Mi
+  requests:
+    cpu: 100m
+    memory: 512Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 2
+  # targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+configMaps:
+  - name: application-config
+    labels: {}
+    annotations: {}
+    data:
+      path: "config/tst/**"
+      mountPath: "/etc/config"
+
+env:
+  - name: JASYPT_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: jasypt-secret
+        key: jasypt-secret
+  - name: SPRING_MAIN_CLOUDPLATFORM
+    value: "kubernetes"
+  - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAMESPACE
+    value: "tst-cloud-factoring"
+  - name: SPRING_CLOUD_KUBERNETES_CONFIG_NAME
+    value: "fctr-cheque-be-application-config"
+  - name: JAVA_OPTS
+    value: "-Djasypt.encryptor.password=$(JASYPT_PASSWORD) -Duser.timezone=Europe/Istanbul -XX:MaxRAMPercentage=65.0 -XX:MinRAMPercentage=60.0"
